@@ -1,15 +1,26 @@
 'use client';
 
+
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
-export default function Estoque() {
-  const [materiasPrimas, setMateriasPrimas] = useState([]);
-  const [produtosIntermediarios, setProdutosIntermediarios] = useState([]);
-  const [itensApoio, setItensApoio] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+type ItemEstoque = {
+  id: string;
+  nome: string;
+  tipo: "materia_prima" | "produto_intermediario" | "item_apoio";
+  ingredientes?: string[];
+};
 
-  const [novoItem, setNovoItem] = useState({ nome: "", tipo: "materia_prima", componentes: "" });
+
+export default function Estoque() {
+	const [materiasPrimas, setMateriasPrimas] = useState<ItemEstoque[]>([]);
+	const [produtosIntermediarios, setProdutosIntermediarios] = useState<ItemEstoque[]>([]);
+	const [itensApoio, setItensApoio] = useState<ItemEstoque[]>([]);
+
+  	const [carregando, setCarregando] = useState(true);
+	const mp = data?.filter(...) || [];
+
+  	const [novoItem, setNovoItem] = useState({ nome: "", tipo: "materia_prima", componentes: "" });
 
   useEffect(() => {
     async function carregarItens() {
