@@ -1,14 +1,12 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-// ✅ Tipagem dos itens
 type ItemEstoque = {
   id: string;
   nome: string;
   tipo: "materia_prima" | "produto_intermediario" | "item_apoio";
-  ingredientes?: string[];
+  componentes?: string;
 };
 
 export default function Home() {
@@ -16,7 +14,8 @@ export default function Home() {
   const [produtosIntermediarios, setProdutosIntermediarios] = useState<ItemEstoque[]>([]);
   const [itensApoio, setItensApoio] = useState<ItemEstoque[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [novoItem, setNovoItem] = useState({
+  const [novoItem, setNovoItem] = useState<ItemEstoque>({
+    id: "",
     nome: "",
     tipo: "materia_prima",
     componentes: "",
@@ -24,8 +23,7 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await supabase.from("estoque").select("*");
-
+      const { data } = await supabase.from("itens_estoque").select("*");
       const mp = data?.filter(i => i.tipo === "materia_prima") || [];
       const pi = data?.filter(i => i.tipo === "produto_intermediario") || [];
       const ia = data?.filter(i => i.tipo === "item_apoio") || [];
@@ -35,7 +33,6 @@ export default function Home() {
       setItensApoio(ia);
       setCarregando(false);
     }
-
     fetchData();
   }, []);
 
@@ -47,30 +44,16 @@ export default function Home() {
       ) : (
         <>
           <section>
-            <h2 className="text-xl font-semibold">Matérias-Primas</h2>
-            <ul>
-              {materiasPrimas.map((item) => (
-                <li key={item.id}>{item.nome}</li>
-              ))}
-            </ul>
+            <h2>Matérias-Primas</h2>
+            <ul>{materiasPrimas.map(i => <li key={i.id}>{i.nome}</li>)}</ul>
           </section>
-
           <section>
-            <h2 className="text-xl font-semibold mt-4">Produtos Intermediários</h2>
-            <ul>
-              {produtosIntermediarios.map((item) => (
-                <li key={item.id}>{item.nome}</li>
-              ))}
-            </ul>
+            <h2>Produtos Intermediários</h2>
+            <ul>{produtosIntermediarios.map(i => <li key={i.id}>{i.nome}</li>)}</ul>
           </section>
-
           <section>
-            <h2 className="text-xl font-semibold mt-4">Itens de Apoio</h2>
-            <ul>
-              {itensApoio.map((item) => (
-                <li key={item.id}>{item.nome}</li>
-              ))}
-            </ul>
+            <h2>Itens de Apoio</h2>
+            <ul>{itensApoio.map(i => <li key={i.id}>{i.nome}</li>)}</ul>
           </section>
         </>
       )}
