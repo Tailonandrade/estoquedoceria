@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Estoque() {
   const [materiasPrimas, setMateriasPrimas] = useState([]);
@@ -40,37 +45,54 @@ export default function Estoque() {
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Controle de Estoque - Doceria</h1>
 
-      <div className="mb-4 border p-4 rounded bg-white shadow">
-        <input className="w-full p-2 border rounded mb-2" placeholder="Nome do item" value={novoItem.nome} onChange={e => setNovoItem({ ...novoItem, nome: e.target.value })} />
-        <textarea className="w-full p-2 border rounded mb-2" placeholder="Componentes (se houver)" value={novoItem.componentes} onChange={e => setNovoItem({ ...novoItem, componentes: e.target.value })} />
-        <select className="w-full p-2 border rounded mb-2" value={novoItem.tipo} onChange={e => setNovoItem({ ...novoItem, tipo: e.target.value })}>
-          <option value="materia_prima">Matéria-Prima</option>
-          <option value="produto_intermediario">Produto Intermediário</option>
-          <option value="item_apoio">Item de Apoio</option>
-        </select>
-        <button className="w-full bg-green-600 text-white py-2 rounded" onClick={adicionarItem}>Adicionar Item</button>
-      </div>
+      <Card className="mb-4">
+        <CardContent className="space-y-4">
+          <Input placeholder="Nome do item" value={novoItem.nome} onChange={e => setNovoItem({ ...novoItem, nome: e.target.value })} />
+          <Textarea placeholder="Componentes (se houver)" value={novoItem.componentes} onChange={e => setNovoItem({ ...novoItem, componentes: e.target.value })} />
+          <select className="w-full border p-2 rounded" value={novoItem.tipo} onChange={e => setNovoItem({ ...novoItem, tipo: e.target.value })}>
+            <option value="materia_prima">Matéria-Prima</option>
+            <option value="produto_intermediario">Produto Intermediário</option>
+            <option value="item_apoio">Item de Apoio</option>
+          </select>
+          <Button onClick={adicionarItem}>Adicionar Item</Button>
+        </CardContent>
+      </Card>
 
       {carregando ? <p>Carregando...</p> : (
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Matérias-Primas</h2>
-            <ul className="space-y-1">{materiasPrimas.map(item => <li key={item.id} className="border p-2 rounded">{item.nome}</li>)}</ul>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Produtos Intermediários</h2>
-            <ul className="space-y-1">{produtosIntermediarios.map(item => (
-              <li key={item.id} className="border p-2 rounded">
-                <strong>{item.nome}</strong><br />
-                <small className="text-gray-500">Componentes: {item.componentes}</small>
-              </li>
-            ))}</ul>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Itens de Apoio</h2>
-            <ul className="space-y-1">{itensApoio.map(item => <li key={item.id} className="border p-2 rounded">{item.nome}</li>)}</ul>
-          </div>
-        </div>
+        <Tabs defaultValue="materias">
+          <TabsList>
+            <TabsTrigger value="materias">Matérias-Primas</TabsTrigger>
+            <TabsTrigger value="intermediarios">Produtos Intermediários</TabsTrigger>
+            <TabsTrigger value="apoio">Itens de Apoio</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="materias">
+            <ul className="space-y-2">
+              {materiasPrimas.map(item => (
+                <li key={item.id} className="border p-2 rounded">{item.nome}</li>
+              ))}
+            </ul>
+          </TabsContent>
+
+          <TabsContent value="intermediarios">
+            <ul className="space-y-2">
+              {produtosIntermediarios.map(item => (
+                <li key={item.id} className="border p-2 rounded">
+                  <strong>{item.nome}</strong><br />
+                  <span className="text-sm text-gray-500">Componentes: {item.componentes}</span>
+                </li>
+              ))}
+            </ul>
+          </TabsContent>
+
+          <TabsContent value="apoio">
+            <ul className="space-y-2">
+              {itensApoio.map(item => (
+                <li key={item.id} className="border p-2 rounded">{item.nome}</li>
+              ))}
+            </ul>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
