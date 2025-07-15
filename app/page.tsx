@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 type ItemEstoque = {
   id?: number;
   nome: string;
   tipo: string;
-  componentes?: string;
   quantidade?: number;
 };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function Home() {
-  const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState("materia_prima");
+  const [nome, setNome] = useState('');
+  const [tipo, setTipo] = useState('materia_prima');
   const [quantidade, setQuantidade] = useState(0);
-  const [carregando, setCarregando] = useState(true);
   const [materiasPrimas, setMateriasPrimas] = useState<ItemEstoque[]>([]);
   const [produtosIntermediarios, setProdutosIntermediarios] = useState<ItemEstoque[]>([]);
   const [itensApoio, setItensApoio] = useState<ItemEstoque[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     buscarItens();
@@ -30,33 +30,32 @@ export default function Home() {
 
   const buscarItens = async () => {
     setCarregando(true);
-    const { data, error } = await supabase.from("estoque").select("*");
+    const { data, error } = await supabase.from('estoque').select('*');
     if (error) {
-      alert("Erro ao buscar itens: " + error.message);
+      alert('Erro ao carregar itens: ' + error.message);
       return;
     }
 
-    const mp = data.filter((i) => i.tipo === "materia_prima");
-    const pi = data.filter((i) => i.tipo === "produto_intermediario");
-    const ia = data.filter((i) => i.tipo === "item_apoio");
-
-    setMateriasPrimas(mp);
-    setProdutosIntermediarios(pi);
-    setItensApoio(ia);
+    setMateriasPrimas(data.filter((i) => i.tipo === 'materia_prima'));
+    setProdutosIntermediarios(data.filter((i) => i.tipo === 'produto_intermediario'));
+    setItensApoio(data.filter((i) => i.tipo === 'item_apoio'));
     setCarregando(false);
   };
 
   const adicionarItem = async () => {
-    if (!nome || !tipo) {
-      alert("Preencha todos os campos");
+    if (!nome || !tipo || quantidade < 0) {
+      alert('Preencha todos os campos corretamente');
       return;
     }
 
-    const { error } = await supabase.from("estoque").insert([{ nome, tipo, quantidade }]);
+    const { error } = await supabase.from('estoque').insert([
+      { nome, tipo, quantidade },
+    ]);
+
     if (error) {
-      alert("Erro ao adicionar: " + error.message);
+      alert('Erro ao adicionar: ' + error.message);
     } else {
-      setNome("");
+      setNome('');
       setQuantidade(0);
       buscarItens();
     }
@@ -64,9 +63,7 @@ export default function Home() {
 
   return (
     <main className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4 flex items-center gap-2">
-        <span>🍰</span> Estoque da Doceria
-      </h1>
+      <h1 className="text-3xl font-bold mb-4 flex items-center gap-2">🍰 Estoque da Doceria</h1>
 
       <h2 className="text-xl font-semibold mb-2">Novo Item</h2>
       <div className="flex gap-2 mb-4">
@@ -92,7 +89,10 @@ export default function Home() {
           onChange={(e) => setQuantidade(Number(e.target.value))}
           className="border px-2 py-1 rounded w-24"
         />
-        <button onClick={adicionarItem} className="bg-green-600 text-white px-4 rounded hover:bg-green-700">
+        <button
+          onClick={adicionarItem}
+          className="bg-green-600 text-white px-4 rounded hover:bg-green-700"
+        >
           Adicionar
         </button>
       </div>
@@ -111,7 +111,7 @@ export default function Home() {
 }
 
 function Section({ title, items }: { title: string; items: ItemEstoque[] }) {
-  if (!items.length) return null;
+  if (items.length === 0) return null;
 
   return (
     <div className="mb-4">
