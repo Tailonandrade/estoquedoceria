@@ -126,6 +126,8 @@ export default function Home() {
           </section>
         </>
       )}
-    </main>
-  );
-}
+return (
+  <main>
+    {/* ... resto do conteúdo */}
+  </main>
+);
