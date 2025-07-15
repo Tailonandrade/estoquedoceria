@@ -126,3 +126,4 @@ function Section({ title, items }: { title: string; items: ItemEstoque[] }) {
     </div>
   );
 }
+
