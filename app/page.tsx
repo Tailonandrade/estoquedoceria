@@ -1,128 +1,106 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
-type ItemEstoque = {
-  id?: number;
-  nome: string;
-  tipo: string;
-  quantidade?: number;
-};
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function Home() {
+export default function CadastroProdutoFinalizado() {
   const [nome, setNome] = useState('');
-  const [tipo, setTipo] = useState('materia_prima');
-  const [quantidade, setQuantidade] = useState(0);
-  const [materiasPrimas, setMateriasPrimas] = useState<ItemEstoque[]>([]);
-  const [produtosIntermediarios, setProdutosIntermediarios] = useState<ItemEstoque[]>([]);
-  const [itensApoio, setItensApoio] = useState<ItemEstoque[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const [consumos, setConsumos] = useState([{ item_id: '', quantidade: '', unidade: '' }]);
+  const [materiais, setMateriais] = useState([]);
 
   useEffect(() => {
-    buscarItens();
+    fetch('/api/estoque') // Ajuste conforme sua API
+      .then((res) => res.json())
+      .then((data) => setMateriais(data));
   }, []);
 
-  const buscarItens = async () => {
-    setCarregando(true);
-    const { data, error } = await supabase.from('estoque').select('*');
-    if (error) {
-      alert('Erro ao carregar itens: ' + error.message);
-      return;
-    }
-
-    setMateriasPrimas(data.filter((i) => i.tipo === 'materia_prima'));
-    setProdutosIntermediarios(data.filter((i) => i.tipo === 'produto_intermediario'));
-    setItensApoio(data.filter((i) => i.tipo === 'item_apoio'));
-    setCarregando(false);
+  const handleAdicionarConsumo = () => {
+    setConsumos([...consumos, { item_id: '', quantidade: '', unidade: '' }]);
   };
 
-  const adicionarItem = async () => {
-    if (!nome || !tipo || quantidade < 0) {
-      alert('Preencha todos os campos corretamente');
-      return;
-    }
+  const handleAlterarConsumo = (index, campo, valor) => {
+    const novosConsumos = [...consumos];
+    novosConsumos[index][campo] = valor;
+    setConsumos(novosConsumos);
+  };
 
-    const { error } = await supabase.from('estoque').insert([
-      { nome, tipo, quantidade },
-    ]);
-
-    if (error) {
-      alert('Erro ao adicionar: ' + error.message);
-    } else {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch('/api/produtos-finalizados', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, consumos })
+    });
+    if (response.ok) {
+      alert('Produto finalizado cadastrado com sucesso!');
       setNome('');
-      setQuantidade(0);
-      buscarItens();
+      setConsumos([{ item_id: '', quantidade: '', unidade: '' }]);
+    } else {
+      alert('Erro ao cadastrar produto.');
     }
   };
 
   return (
-    <main className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4 flex items-center gap-2">🍰 Estoque da Doceria</h1>
+    <main className="p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Cadastrar Produto Finalizado</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block font-medium">Nome do Produto</label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+          />
+        </div>
 
-      <h2 className="text-xl font-semibold mb-2">Novo Item</h2>
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          className="border px-2 py-1 rounded w-full"
-        />
-        <select
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-          className="border px-2 py-1 rounded"
-        >
-          <option value="materia_prima">Matéria-Prima</option>
-          <option value="produto_intermediario">Produto Intermediário</option>
-          <option value="item_apoio">Item de Apoio</option>
-        </select>
-        <input
-          type="number"
-          value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-          className="border px-2 py-1 rounded w-24"
-        />
-        <button
-          onClick={adicionarItem}
-          className="bg-green-600 text-white px-4 rounded hover:bg-green-700"
-        >
-          Adicionar
+        <div>
+          <label className="block font-medium mb-2">Itens Consumidos</label>
+          {consumos.map((consumo, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <select
+                className="flex-1 p-2 border rounded"
+                value={consumo.item_id}
+                onChange={(e) => handleAlterarConsumo(index, 'item_id', e.target.value)}
+                required
+              >
+                <option value="">Selecione o item</option>
+                {materiais.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nome}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                className="w-24 p-2 border rounded"
+                placeholder="Qtd"
+                value={consumo.quantidade}
+                onChange={(e) => handleAlterarConsumo(index, 'quantidade', e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                className="w-20 p-2 border rounded"
+                placeholder="Un"
+                value={consumo.unidade}
+                onChange={(e) => handleAlterarConsumo(index, 'unidade', e.target.value)}
+                required
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="text-blue-600 hover:underline"
+            onClick={handleAdicionarConsumo}
+          >
+            + Adicionar item
+          </button>
+        </div>
+
+        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Cadastrar Produto
         </button>
-      </div>
-
-      {carregando ? (
-        <p>Carregando...</p>
-      ) : (
-        <>
-          <Section title="Matérias-Primas" items={materiasPrimas} />
-          <Section title="Produtos Intermediários" items={produtosIntermediarios} />
-          <Section title="Itens de Apoio" items={itensApoio} />
-        </>
-      )}
+      </form>
     </main>
-  );
-}
-
-function Section({ title, items }: { title: string; items: ItemEstoque[] }) {
-  if (items.length === 0) return null;
-
-  return (
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold mt-4 mb-1">{title}</h3>
-      <ul className="list-disc pl-5">
-        {items.map((item) => (
-          <li key={item.id}>
-            {item.nome} - {item.quantidade ?? 0}
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
