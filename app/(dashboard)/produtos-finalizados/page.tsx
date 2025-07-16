@@ -1,106 +1,120 @@
-'use client';
-import { useState, useEffect } from 'react';
+'use client'
+
+import { useEffect, useState } from 'react'
+
+type ItemEstoque = {
+  id: string
+  nome: string
+  unidade: string
+}
 
 export default function CadastroProdutoFinalizado() {
-  const [nome, setNome] = useState('');
-  const [consumos, setConsumos] = useState([{ item_id: '', quantidade: '', unidade: '' }]);
-  const [materiais, setMateriais] = useState([]);
+  const [nomeProduto, setNomeProduto] = useState('')
+  const [itensEstoque, setItensEstoque] = useState<ItemEstoque[]>([])
+  const [itensComposicao, setItensComposicao] = useState<
+    { idEstoque: string; quantidade: number }[]
+  >([{ idEstoque: '', quantidade: 0 }])
 
+  // Busca os itens de estoque para compor o produto
   useEffect(() => {
-    fetch('/api/estoque') // Ajuste conforme sua API
-      .then((res) => res.json())
-      .then((data) => setMateriais(data));
-  }, []);
+    fetch('/api/estoque')
+      .then(res => res.json())
+      .then(data => setItensEstoque(data))
+  }, [])
 
-  const handleAdicionarConsumo = () => {
-    setConsumos([...consumos, { item_id: '', quantidade: '', unidade: '' }]);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  const handleAlterarConsumo = (index, campo, valor) => {
-    const novosConsumos = [...consumos];
-    novosConsumos[index][campo] = valor;
-    setConsumos(novosConsumos);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const response = await fetch('/api/produtos-finalizados', {
+    const res = await fetch('/api/produtos-finalizados', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, consumos })
-    });
-    if (response.ok) {
-      alert('Produto finalizado cadastrado com sucesso!');
-      setNome('');
-      setConsumos([{ item_id: '', quantidade: '', unidade: '' }]);
+      body: JSON.stringify({
+        nome: nomeProduto,
+        composicao: itensComposicao
+      }),
+    })
+
+    if (res.ok) {
+      alert('Produto cadastrado com sucesso!')
+      setNomeProduto('')
+      setItensComposicao([{ idEstoque: '', quantidade: 0 }])
     } else {
-      alert('Erro ao cadastrar produto.');
+      alert('Erro ao cadastrar produto.')
     }
-  };
+  }
+
+  const handleAddComposicao = () => {
+    setItensComposicao([...itensComposicao, { idEstoque: '', quantidade: 0 }])
+  }
 
   return (
-    <main className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Cadastrar Produto Finalizado</h1>
+    <main className="p-6 max-w-xl mx-auto">
+      <h1 className="text-xl font-bold mb-4">Cadastro de Produto Finalizado</h1>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block font-medium">Nome do Produto</label>
+          <label className="block mb-1">Nome do Produto</label>
           <input
             type="text"
-            className="w-full p-2 border rounded"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
+            value={nomeProduto}
+            onChange={(e) => setNomeProduto(e.target.value)}
+            className="w-full border rounded p-2"
             required
           />
         </div>
 
         <div>
-          <label className="block font-medium mb-2">Itens Consumidos</label>
-          {consumos.map((consumo, index) => (
+          <label className="block mb-2 font-semibold">Composição:</label>
+          {itensComposicao.map((item, index) => (
             <div key={index} className="flex gap-2 mb-2">
               <select
-                className="flex-1 p-2 border rounded"
-                value={consumo.item_id}
-                onChange={(e) => handleAlterarConsumo(index, 'item_id', e.target.value)}
-                required
+                className="flex-1 border rounded p-2"
+                value={item.idEstoque}
+                onChange={(e) => {
+                  const newItens = [...itensComposicao]
+                  newItens[index].idEstoque = e.target.value
+                  setItensComposicao(newItens)
+                }}
               >
-                <option value="">Selecione o item</option>
-                {materiais.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.nome}
+                <option value="">Selecione um item</option>
+                {itensEstoque.map((estoque) => (
+                  <option key={estoque.id} value={estoque.id}>
+                    {estoque.nome} ({estoque.unidade})
                   </option>
                 ))}
               </select>
+
               <input
                 type="number"
-                className="w-24 p-2 border rounded"
+                min="0"
+                step="0.01"
+                className="w-24 border rounded p-2"
                 placeholder="Qtd"
-                value={consumo.quantidade}
-                onChange={(e) => handleAlterarConsumo(index, 'quantidade', e.target.value)}
-                required
-              />
-              <input
-                type="text"
-                className="w-20 p-2 border rounded"
-                placeholder="Un"
-                value={consumo.unidade}
-                onChange={(e) => handleAlterarConsumo(index, 'unidade', e.target.value)}
+                value={item.quantidade}
+                onChange={(e) => {
+                  const newItens = [...itensComposicao]
+                  newItens[index].quantidade = parseFloat(e.target.value)
+                  setItensComposicao(newItens)
+                }}
                 required
               />
             </div>
           ))}
           <button
             type="button"
-            className="text-blue-600 hover:underline"
-            onClick={handleAdicionarConsumo}
+            onClick={handleAddComposicao}
+            className="text-blue-600 hover:underline text-sm"
           >
-            + Adicionar item
+            + Adicionar outro item
           </button>
         </div>
 
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Cadastrar Produto
+        <button
+          type="submit"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Salvar Produto
         </button>
       </form>
     </main>
-  );
+  )
 }
