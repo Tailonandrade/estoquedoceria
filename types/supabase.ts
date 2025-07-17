@@ -1,120 +1,51 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      materias_primas: {
+      estoque: {
         Row: {
-          id: number
-          nome: string
-          quantidade: number
-          unidade_id: number
-          created_at: string
-        }
+          id: string;
+          nome: string;
+          tipo: string;
+          unidade: string;
+          quantidade: number;
+        };
         Insert: {
-          id?: number
-          nome: string
-          quantidade: number
-          unidade_id: number
-          created_at?: string
-        }
-        Update: {
-          id?: number
-          nome?: string
-          quantidade?: number
-          unidade_id?: number
-          created_at?: string
-        }
-      }
-
+          id?: string;
+          nome: string;
+          tipo: string;
+          unidade: string;
+          quantidade: number;
+        };
+        Update: Partial<Omit<Database['public']['Tables']['estoque']['Insert'], 'id'>>;
+      };
       produtos_finalizados: {
         Row: {
-          id: number
-          nome: string
-          created_at: string
-        }
+          id: string;
+          nome: string;
+        };
         Insert: {
-          id?: number
-          nome: string
-          created_at?: string
-        }
-        Update: {
-          id?: number
-          nome?: string
-          created_at?: string
-        }
-      }
-
+          id?: string;
+          nome: string;
+        };
+        Update: Partial<Omit<Database['public']['Tables']['produtos_finalizados']['Insert'], 'id'>>;
+      };
       composicoes: {
         Row: {
-          id: number
-          produto_finalizado_id: number
-          materia_prima_id: number
-          quantidade_utilizada: number
-        }
+          id: string;
+          produto_finalizado_id: string;
+          insumo_id: string;
+          quantidade: number;
+        };
         Insert: {
-          id?: number
-          produto_finalizado_id: number
-          materia_prima_id: number
-          quantidade_utilizada: number
-        }
-        Update: {
-          id?: number
-          produto_finalizado_id?: number
-          materia_prima_id?: number
-          quantidade_utilizada?: number
-        }
-      }
-
-      saidas_estoque: {
-        Row: {
-          id: number
-          materia_prima_id: number
-          quantidade: number
-          motivo: string
-          created_at: string
-        }
-        Insert: {
-          id?: number
-          materia_prima_id: number
-          quantidade: number
-          motivo: string
-          created_at?: string
-        }
-        Update: {
-          id?: number
-          materia_prima_id?: number
-          quantidade?: number
-          motivo?: string
-          created_at?: string
-        }
-      }
-
-      unidades_medida: {
-        Row: {
-          id: number
-          nome: string
-        }
-        Insert: {
-          id?: number
-          nome: string
-        }
-        Update: {
-          id?: number
-          nome?: string
-        }
-      }
-    }
-
-    Views: {}
-    Functions: {}
-    Enums: {}
-    CompositeTypes: {}
-  }
-}
+          id?: string;
+          produto_finalizado_id: string;
+          insumo_id: string;
+          quantidade: number;
+        };
+        Update: Partial<Omit<Database['public']['Tables']['composicoes']['Insert'], 'id'>>;
+      };
+    };
+  };
+};
